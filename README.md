@@ -2,7 +2,7 @@
 
 An interactive, high-tech Cyberpunk Terminal simulator built with pure HTML5, CSS3, and JavaScript. It features dynamic log streaming, customizable neon aesthetics, synthesized mechanical sound effects, and a built-in global live chat panel.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)
 ![GitHub Pages](https://img.shields.io/badge/deployment-GitHub%20Pages-brightgreen)
 
 ## 🌟 Key Features
