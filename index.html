@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>\\ SYSTEM TERMINAL - STREAM ENGINE 6.0 //</title>
     
-    <!-- Firebase Realtime Database SDK (Canlı sohbet için) -->
+    <!-- Firebase Realtime Database SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -213,9 +213,6 @@
             100% { opacity: 1; }
         }
 
-        /* -------------------------------------------------------------
-           F6 SOHBET PANELİ TASARIMI
-        ------------------------------------------------------------- */
         .chat-drawer {
             position: fixed;
             top: 45px;
@@ -262,7 +259,6 @@
             font-weight: bold;
         }
 
-        /* Nickname Ekranı */
         #nick-screen {
             display: flex;
             flex-direction: column;
@@ -286,7 +282,6 @@
             box-shadow: 0 0 8px var(--primary-b);
         }
 
-        /* Sohbet Alanı */
         #chat-main {
             display: none;
             flex-direction: column;
@@ -386,27 +381,24 @@
         <div id="terminal"></div>
         <div class="cursor-line">
             <span class="tag">&lt;/&gt;</span>
-            <span class="val-white">STREAMING MODE ACTIVE... (Basın F6 Sohbet)</span>
+            <span class="val-white">STREAMING MODE ACTIVE...</span>
             <span class="cursor"></span>
         </div>
     </div>
 </div>
 
-<!-- F6 SOHBET ÇEKMECESİ -->
 <div class="chat-drawer" id="chatDrawer">
     <div class="chat-header">
         <span class="chat-title">// GLOBAL TERMINAL CHAT</span>
         <button class="chat-close-btn" id="btnCloseChat">[X]</button>
     </div>
 
-    <!-- 1. ADIM: TAKMA AD GİRİŞ EKRANI -->
     <div id="nick-screen">
         <span class="color-a" style="font-size: 13px;">Sohbete katılmak için bir Takma Ad (Nickname) belirleyin:</span>
         <input type="text" id="nickInput" class="cyber-input" placeholder="Takma Adınız..." maxlength="18">
         <button class="cyber-btn" id="btnSetNick" style="padding: 8px;">SOHBETE KATIL</button>
     </div>
 
-    <!-- 2. ADIM: GERÇEK SOHBET ALANI -->
     <div id="chat-main">
         <div class="nick-tag">Giriş Yapıldı: <span id="currentNickDisplay" class="color-b"></span></div>
         <div class="chat-messages" id="chatMessages"></div>
@@ -429,9 +421,6 @@
     let currentThemeIdx = 0;
     const MAX_DOM_LINES = 150;
 
-    /* -------------------------------------------------------------
-       AUDIO ENGINE - TIK SESİ
-    ------------------------------------------------------------- */
     let audioCtx = null;
 
     function playClickSound() {
@@ -461,9 +450,6 @@
         osc.stop(now + 0.012);
     }
 
-    /* -------------------------------------------------------------
-       F6 CHAT SİSTEMİ & TAKMA AD MANTIĞI (BOTSUZ)
-    ------------------------------------------------------------- */
     const chatDrawer = document.getElementById('chatDrawer');
     const btnChatToggle = document.getElementById('btnChatToggle');
     const btnCloseChat = document.getElementById('btnCloseChat');
@@ -478,8 +464,6 @@
 
     let userNickname = localStorage.getItem('terminal_nick') || '';
 
-    // Firebase Ayarları (İsteğe bağlı: Farklı cihazlar arası canlı sohbet için)
-    // Eğer kendi Firebase veritabanınızı bağlamak isterseniz aşağıdaki firebaseConfig nesnesini doldurabilirsiniz.
     const firebaseConfig = {
         // apiKey: "...",
         // databaseURL: "https://your-db.firebaseio.com"
@@ -495,7 +479,6 @@
         });
     }
 
-    // Yerel Tablar Arası Canlı Mesajlaşma (Firebase olmadığında aynı tarayıcıda test için)
     const localChannel = new BroadcastChannel('cyber_terminal_chat');
     localChannel.onmessage = (event) => {
         addChatMessageUI(event.data.nick, event.data.text, event.data.time);
@@ -541,11 +524,9 @@
         playClickSound();
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        // Eğer Firebase bağlıysa
         if (dbRef) {
             dbRef.push({ nick: userNickname, text: text, time: timeStr });
         } else {
-            // Bağlı değilse ekrana bas ve diğer sekmelere yayınla
             addChatMessageUI(userNickname, text, timeStr);
             localChannel.postMessage({ nick: userNickname, text: text, time: timeStr });
         }
@@ -571,10 +552,9 @@
         );
     }
 
-    // F6 Tuşu Algılama
     window.addEventListener('keydown', (e) => {
         if (e.key === 'F6') {
-            e.preventDefault(); // F6 varsayılan tarayıcı işlevini engelle
+            e.preventDefault();
             toggleChat();
         }
     });
@@ -586,9 +566,6 @@
     btnSendMsg.addEventListener('click', sendMessage);
     chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-    /* -------------------------------------------------------------
-       TEMA & MATRIX EKRAN KODLARI
-    ------------------------------------------------------------- */
     const themes = [
         { name: "NIGHT CITY",    a: "#fcee0a", b: "#00f0ff", ga: "rgba(252,238,10,0.65)",  gb: "rgba(0,240,255,0.65)" },
         { name: "NEON PROTOCOL", a: "#ff0055", b: "#00f6ff", ga: "rgba(255,0,85,0.65)",   gb: "rgba(0,246,255,0.65)" },
@@ -687,7 +664,6 @@
     }
 
     document.addEventListener('keydown', (e) => {
-        // Chat açıkken veya F6'ya basıldığında terminale log basma
         if (chatDrawer.classList.contains('open') || e.key === 'F6') return;
         generateRandomLog();
     });
