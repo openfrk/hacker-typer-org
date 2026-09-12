@@ -33,6 +33,9 @@
             margin: 0;
             line-height: 1.4;
             user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             overflow-x: hidden;
             min-height: 100vh;
             display: flex;
@@ -164,6 +167,7 @@
 
         .terminal-container {
             display: flex;
+            flex-direction: flex;
             flex-direction: column;
             flex: 1;
         }
@@ -189,6 +193,7 @@
 
         .color-a { color: var(--primary-a); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-a); }
         .color-b { color: var(--primary-b); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-b); }
+        .color-danger { color: #ff0055; font-weight: bold; text-shadow: 0 0 8px rgba(255, 0, 85, 0.8); }
         .val-white { color: #ffffff; font-weight: bold; }
 
         .cursor-line {
@@ -276,6 +281,8 @@
             font-size: 13px;
             outline: none;
             box-shadow: inset 0 0 5px rgba(0, 240, 255, 0.2);
+            user-select: text !important;
+            -webkit-user-select: text !important;
         }
 
         .cyber-input:focus {
@@ -298,6 +305,8 @@
             padding-right: 5px;
             margin-bottom: 12px;
             word-break: break-word;
+            user-select: text !important;
+            -webkit-user-select: text !important;
         }
 
         .chat-messages::-webkit-scrollbar {
@@ -395,7 +404,7 @@
 
     <div id="nick-screen">
         <span class="color-a" style="font-size: 13px;">Sohbete katılmak için bir Takma Ad (Nickname) belirleyin:</span>
-        <input type="text" id="nickInput" class="cyber-input" placeholder="Takma Adınız..." maxlength="18">
+        <input type="text" id="nickInput" class="cyber-input" placeholder="Takma Adınız..." maxlength="18" autocomplete="off">
         <button class="cyber-btn" id="btnSetNick" style="padding: 8px;">SOHBETE KATIL</button>
     </div>
 
@@ -403,7 +412,7 @@
         <div class="nick-tag">Giriş Yapıldı: <span id="currentNickDisplay" class="color-b"></span></div>
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input-row">
-            <input type="text" id="chatInput" class="cyber-input" style="flex:1;" placeholder="Mesaj yazın..." maxlength="200">
+            <input type="text" id="chatInput" class="cyber-input" style="flex:1;" placeholder="Mesaj yazın..." maxlength="200" autocomplete="off">
             <button class="cyber-btn" id="btnSendMsg">GÖNDER</button>
         </div>
     </div>
@@ -489,6 +498,9 @@
         chatDrawer.classList.toggle('open');
         if (chatDrawer.classList.contains('open')) {
             checkNicknameState();
+        } else {
+            nickInput.blur();
+            chatInput.blur();
         }
     }
 
@@ -552,10 +564,41 @@
         );
     }
 
+    // --- ANTI-DEVTOOLS & SECURITY PROTECTION ---
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        playClickSound();
+        appendTerminalOutput('<span class="color-danger">[SECURITY ALERT] CONTEXT MENU DISABLED. ACCESS DENIED.</span>');
+    });
+
     window.addEventListener('keydown', (e) => {
+        // DevTools ve Kaynak Kod Engelleri
+        const isF12 = e.key === 'F12';
+        const isCtrlShiftI = e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i');
+        const isCtrlShiftJ = e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j');
+        const isCtrlShiftC = e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c');
+        const isCtrlU = e.ctrlKey && (e.key === 'u' || e.key === 'U');
+
+        if (isF12 || isCtrlShiftI || isCtrlShiftJ || isCtrlShiftC || isCtrlU) {
+            e.preventDefault();
+            e.stopPropagation();
+            playClickSound();
+            appendTerminalOutput('<span class="color-danger">[SECURITY ALERT] DEVTOOLS ACCESS BLOCKED. SYSTEM INTEGRITY PROTECTED.</span>');
+            return false;
+        }
+
         if (e.key === 'F6') {
             e.preventDefault();
             toggleChat();
+            return;
+        }
+
+        // Eğer Sohbet Çekmecesi Açık Değilse Tuşlar Sohbet Kutularına Odaklanmasın
+        if (!chatDrawer.classList.contains('open')) {
+            if (document.activeElement === chatInput || document.activeElement === nickInput) {
+                document.activeElement.blur();
+            }
+            generateRandomLog();
         }
     });
 
@@ -662,11 +705,6 @@
             clearInterval(autoTimer);
         }
     }
-
-    document.addEventListener('keydown', (e) => {
-        if (chatDrawer.classList.contains('open') || e.key === 'F6') return;
-        generateRandomLog();
-    });
 
     document.addEventListener('click', (e) => {
         if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !chatDrawer.contains(e.target)) {
