@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -167,7 +167,6 @@
 
         .terminal-container {
             display: flex;
-            flex-direction: flex;
             flex-direction: column;
             flex: 1;
         }
@@ -403,17 +402,17 @@
     </div>
 
     <div id="nick-screen">
-        <span class="color-a" style="font-size: 13px;">Sohbete katılmak için bir Takma Ad (Nickname) belirleyin:</span>
-        <input type="text" id="nickInput" class="cyber-input" placeholder="Takma Adınız..." maxlength="18" autocomplete="off">
-        <button class="cyber-btn" id="btnSetNick" style="padding: 8px;">SOHBETE KATIL</button>
+        <span class="color-a" style="font-size: 13px;">Enter a nickname to join the chat:</span>
+        <input type="text" id="nickInput" class="cyber-input" placeholder="Enter Nickname..." maxlength="18" autocomplete="off">
+        <button class="cyber-btn" id="btnSetNick" style="padding: 8px;">JOIN CHAT</button>
     </div>
 
     <div id="chat-main">
-        <div class="nick-tag">Giriş Yapıldı: <span id="currentNickDisplay" class="color-b"></span></div>
+        <div class="nick-tag">LOGGED IN: <span id="currentNickDisplay" class="color-b"></span></div>
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input-row">
-            <input type="text" id="chatInput" class="cyber-input" style="flex:1;" placeholder="Mesaj yazın..." maxlength="200" autocomplete="off">
-            <button class="cyber-btn" id="btnSendMsg">GÖNDER</button>
+            <input type="text" id="chatInput" class="cyber-input" style="flex:1;" placeholder="Type a message..." maxlength="200" autocomplete="off">
+            <button class="cyber-btn" id="btnSendMsg">SEND</button>
         </div>
     </div>
 </div>
@@ -520,7 +519,7 @@
     function saveNickname() {
         const val = nickInput.value.trim();
         if (val.length < 2) {
-            alert('Takma ad en az 2 karakter olmalıdır!');
+            alert('Nickname must be at least 2 characters long!');
             return;
         }
         playClickSound();
@@ -572,7 +571,6 @@
     });
 
     window.addEventListener('keydown', (e) => {
-        // DevTools ve Kaynak Kod Engelleri
         const isF12 = e.key === 'F12';
         const isCtrlShiftI = e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i');
         const isCtrlShiftJ = e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j');
@@ -593,7 +591,6 @@
             return;
         }
 
-        // Eğer Sohbet Çekmecesi Açık Değilse Tuşlar Sohbet Kutularına Odaklanmasın
         if (!chatDrawer.classList.contains('open')) {
             if (document.activeElement === chatInput || document.activeElement === nickInput) {
                 document.activeElement.blur();
