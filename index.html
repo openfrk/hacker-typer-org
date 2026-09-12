@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>\\ SYSTEM TERMINAL - STREAM ENGINE 6.0 //</title>
+    
+    <!-- Firebase Realtime Database SDK (Canlı sohbet için) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #020204;
+            --muted-color: #444455;
+            --primary-a: #fcee0a;
+            --primary-b: #00f0ff;
+            --accent-glow-a: rgba(252, 238, 10, 0.65);
+            --accent-glow-b: rgba(0, 240, 255, 0.65);
+            --tag-color: #ffffff;
+            --hud-bg: rgba(6, 8, 14, 0.88);
+            --hud-border: rgba(0, 240, 255, 0.25);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary-a);
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 15px;
+            padding: 0;
+            margin: 0;
+            line-height: 1.4;
+            user-select: none;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%),
+                radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.92) 100%);
+            background-size: 100% 4px, 100% 100%;
+            opacity: 0.85;
+        }
+
+        #bgCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.22;
+        }
+
+        .hud-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--hud-bg);
+            border-bottom: 1px solid var(--hud-border);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+        }
+
+        .hud-group { display: flex; align-items: center; gap: 18px; }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--primary-b);
+            text-shadow: 0 0 5px var(--accent-glow-b);
+        }
+
+        .hud-label { color: var(--muted-color); font-weight: bold; }
+
+        .hud-progress {
+            width: 70px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .hud-fill {
+            height: 100%;
+            background: var(--primary-a);
+            box-shadow: 0 0 8px var(--primary-a);
+            width: 45%;
+            transition: width 0.4s ease;
+        }
+
+        .hud-controls { display: flex; gap: 8px; }
+
+        .cyber-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--primary-b);
+            color: var(--primary-b);
+            padding: 4px 10px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .cyber-btn:hover, .cyber-btn.active {
+            background: var(--primary-b);
+            color: #000;
+            box-shadow: 0 0 12px var(--primary-b);
+        }
+
+        .main-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            color: var(--primary-a);
+            font-weight: bold;
+            white-space: pre;
+            margin-bottom: 15px;
+            transition: opacity 0.3s ease, max-height 0.3s ease;
+            opacity: 1;
+            max-height: 120px;
+            overflow: hidden;
+            text-shadow: 0 0 10px var(--accent-glow-a);
+            animation: headerGlitch 4s infinite alternate;
+        }
+
+        @keyframes headerGlitch {
+            0%, 94%, 100% { transform: none; text-shadow: 0 0 10px var(--accent-glow-a); }
+            95% { transform: skewX(-5deg); text-shadow: -2px 0 var(--primary-b), 2px 0 var(--primary-a); }
+            97% { transform: skewX(4deg); text-shadow: 2px 0 var(--primary-b), -2px 0 var(--primary-a); }
+        }
+
+        .header.fade-out {
+            opacity: 0;
+            max-height: 0;
+            margin-bottom: 0;
+        }
+
+        .terminal-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .line {
+            margin: 2px 0;
+            word-break: break-all;
+            opacity: 0;
+            animation: ultraSpawn 0.08s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+        }
+
+        @keyframes ultraSpawn {
+            0% { opacity: 0; transform: translateX(-6px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .tag {
+            color: var(--tag-color);
+            font-weight: bold;
+            margin-right: 8px;
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+        }
+
+        .color-a { color: var(--primary-a); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-a); }
+        .color-b { color: var(--primary-b); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-b); }
+        .val-white { color: #ffffff; font-weight: bold; }
+
+        .cursor-line {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+            padding: 4px 0;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background-color: var(--primary-b);
+            margin-left: 6px;
+            box-shadow: 0 0 10px var(--primary-b);
+            animation: neonBlink 0.6s infinite alternate;
+        }
+
+        @keyframes neonBlink {
+            0% { opacity: 0.15; }
+            100% { opacity: 1; }
+        }
+
+        /* -------------------------------------------------------------
+           F6 SOHBET PANELİ TASARIMI
+        ------------------------------------------------------------- */
+        .chat-drawer {
+            position: fixed;
+            top: 45px;
+            right: -380px;
+            width: 360px;
+            height: calc(100vh - 45px);
+            background: rgba(4, 6, 12, 0.95);
+            border-left: 2px solid var(--primary-b);
+            box-shadow: -8px 0 25px rgba(0, 240, 255, 0.25);
+            backdrop-filter: blur(12px);
+            z-index: 500;
+            transition: right 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .chat-drawer.open {
+            right: 0;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--hud-border);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .chat-title {
+            color: var(--primary-a);
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 0 0 6px var(--accent-glow-a);
+        }
+
+        .chat-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-b);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        /* Nickname Ekranı */
+        #nick-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .cyber-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--primary-b);
+            color: #fff;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            box-shadow: inset 0 0 5px rgba(0, 240, 255, 0.2);
+        }
+
+        .cyber-input:focus {
+            box-shadow: 0 0 8px var(--primary-b);
+        }
+
+        /* Sohbet Alanı */
+        #chat-main {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--primary-b);
+        }
+
+        .msg-item {
+            font-size: 13px;
+            line-height: 1.3;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 6px 8px;
+            border-left: 2px solid var(--primary-a);
+        }
+
+        .msg-nick {
+            color: var(--primary-b);
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .msg-text {
+            color: #ffffff;
+        }
+
+        .msg-time {
+            color: var(--muted-color);
+            font-size: 10px;
+            float: right;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .nick-tag {
+            font-size: 11px;
+            color: var(--muted-color);
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+<canvas id="bgCanvas"></canvas>
+
+<div class="hud-bar">
+    <div class="hud-group">
+        <div class="hud-item">
+            <span class="hud-label">CPU:</span>
+            <span id="hud-cpu">38%</span>
+            <div class="hud-progress"><div id="bar-cpu" class="hud-fill" style="width: 38%;"></div></div>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">RAM:</span>
+            <span id="hud-ram">7.2 GB</span>
+            <div class="hud-progress"><div id="bar-ram" class="hud-fill" style="width: 45%;"></div></div>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">NET:</span>
+            <span id="hud-net" class="color-b">18.2 Gbps</span>
+        </div>
+    </div>
+    <div class="hud-controls">
+        <button class="cyber-btn" id="btnChatToggle">[F6] CHAT</button>
+        <button class="cyber-btn" id="btnAuto">AUTO: OFF</button>
+        <button class="cyber-btn" id="btnTheme">THEME: NIGHT CITY</button>
+    </div>
+</div>
+
+<div class="main-content">
+    <div id="header" class="header">========================================================================================
+                       \\ SYSTEM TERMINAL - STREAM ENGINE 6.0 //
+========================================================================================</div>
+
+    <div class="terminal-container">
+        <div id="terminal"></div>
+        <div class="cursor-line">
+            <span class="tag">&lt;/&gt;</span>
+            <span class="val-white">STREAMING MODE ACTIVE... (Basın F6 Sohbet)</span>
+            <span class="cursor"></span>
+        </div>
+    </div>
+</div>
+
+<!-- F6 SOHBET ÇEKMECESİ -->
+<div class="chat-drawer" id="chatDrawer">
+    <div class="chat-header">
+        <span class="chat-title">// GLOBAL TERMINAL CHAT</span>
+        <button class="chat-close-btn" id="btnCloseChat">[X]</button>
+    </div>
+
+    <!-- 1. ADIM: TAKMA AD GİRİŞ EKRANI -->
+    <div id="nick-screen">
+        <span class="color-a" style="font-size: 13px;">Sohbete katılmak için bir Takma Ad (Nickname) belirleyin:</span>
+        <input type="text" id="nickInput" class="cyber-input" placeholder="Takma Adınız..." maxlength="18">
+        <button class="cyber-btn" id="btnSetNick" style="padding: 8px;">SOHBETE KATIL</button>
+    </div>
+
+    <!-- 2. ADIM: GERÇEK SOHBET ALANI -->
+    <div id="chat-main">
+        <div class="nick-tag">Giriş Yapıldı: <span id="currentNickDisplay" class="color-b"></span></div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+            <input type="text" id="chatInput" class="cyber-input" style="flex:1;" placeholder="Mesaj yazın..." maxlength="200">
+            <button class="cyber-btn" id="btnSendMsg">GÖNDER</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const terminal = document.getElementById('terminal');
+    const header = document.getElementById('header');
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let isFirstInput = true;
+    let autoStream = false;
+    let autoTimer = null;
+    let currentThemeIdx = 0;
+    const MAX_DOM_LINES = 150;
+
+    /* -------------------------------------------------------------
+       AUDIO ENGINE - TIK SESİ
+    ------------------------------------------------------------- */
+    let audioCtx = null;
+
+    function playClickSound() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        const freq = 1100 + (Math.random() * 300 - 150);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.012);
+
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.012);
+    }
+
+    /* -------------------------------------------------------------
+       F6 CHAT SİSTEMİ & TAKMA AD MANTIĞI (BOTSUZ)
+    ------------------------------------------------------------- */
+    const chatDrawer = document.getElementById('chatDrawer');
+    const btnChatToggle = document.getElementById('btnChatToggle');
+    const btnCloseChat = document.getElementById('btnCloseChat');
+    const nickScreen = document.getElementById('nick-screen');
+    const chatMain = document.getElementById('chat-main');
+    const nickInput = document.getElementById('nickInput');
+    const btnSetNick = document.getElementById('btnSetNick');
+    const currentNickDisplay = document.getElementById('currentNickDisplay');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const btnSendMsg = document.getElementById('btnSendMsg');
+
+    let userNickname = localStorage.getItem('terminal_nick') || '';
+
+    // Firebase Ayarları (İsteğe bağlı: Farklı cihazlar arası canlı sohbet için)
+    // Eğer kendi Firebase veritabanınızı bağlamak isterseniz aşağıdaki firebaseConfig nesnesini doldurabilirsiniz.
+    const firebaseConfig = {
+        // apiKey: "...",
+        // databaseURL: "https://your-db.firebaseio.com"
+    };
+
+    let dbRef = null;
+    if (firebaseConfig.databaseURL) {
+        firebase.initializeApp(firebaseConfig);
+        dbRef = firebase.database().ref("global_chat");
+        dbRef.limitToLast(40).on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            addChatMessageUI(data.nick, data.text, data.time);
+        });
+    }
+
+    // Yerel Tablar Arası Canlı Mesajlaşma (Firebase olmadığında aynı tarayıcıda test için)
+    const localChannel = new BroadcastChannel('cyber_terminal_chat');
+    localChannel.onmessage = (event) => {
+        addChatMessageUI(event.data.nick, event.data.text, event.data.time);
+    };
+
+    function toggleChat() {
+        playClickSound();
+        chatDrawer.classList.toggle('open');
+        if (chatDrawer.classList.contains('open')) {
+            checkNicknameState();
+        }
+    }
+
+    function checkNicknameState() {
+        if (userNickname) {
+            nickScreen.style.display = 'none';
+            chatMain.style.display = 'flex';
+            currentNickDisplay.innerText = userNickname;
+            chatInput.focus();
+        } else {
+            nickScreen.style.display = 'flex';
+            chatMain.style.display = 'none';
+            nickInput.focus();
+        }
+    }
+
+    function saveNickname() {
+        const val = nickInput.value.trim();
+        if (val.length < 2) {
+            alert('Takma ad en az 2 karakter olmalıdır!');
+            return;
+        }
+        playClickSound();
+        userNickname = val;
+        localStorage.setItem('terminal_nick', userNickname);
+        checkNicknameState();
+    }
+
+    function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        
+        playClickSound();
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Eğer Firebase bağlıysa
+        if (dbRef) {
+            dbRef.push({ nick: userNickname, text: text, time: timeStr });
+        } else {
+            // Bağlı değilse ekrana bas ve diğer sekmelere yayınla
+            addChatMessageUI(userNickname, text, timeStr);
+            localChannel.postMessage({ nick: userNickname, text: text, time: timeStr });
+        }
+
+        chatInput.value = '';
+    }
+
+    function addChatMessageUI(nick, text, time) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'msg-item';
+        msgDiv.innerHTML = `
+            <span class="msg-time">${time}</span>
+            <span class="msg-nick">&lt;${escapeHTML(nick)}&gt;</span>
+            <span class="msg-text">${escapeHTML(text)}</span>
+        `;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    }
+
+    // F6 Tuşu Algılama
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'F6') {
+            e.preventDefault(); // F6 varsayılan tarayıcı işlevini engelle
+            toggleChat();
+        }
+    });
+
+    btnChatToggle.addEventListener('click', toggleChat);
+    btnCloseChat.addEventListener('click', toggleChat);
+    btnSetNick.addEventListener('click', saveNickname);
+    nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveNickname(); });
+    btnSendMsg.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    /* -------------------------------------------------------------
+       TEMA & MATRIX EKRAN KODLARI
+    ------------------------------------------------------------- */
+    const themes = [
+        { name: "NIGHT CITY",    a: "#fcee0a", b: "#00f0ff", ga: "rgba(252,238,10,0.65)",  gb: "rgba(0,240,255,0.65)" },
+        { name: "NEON PROTOCOL", a: "#ff0055", b: "#00f6ff", ga: "rgba(255,0,85,0.65)",   gb: "rgba(0,246,255,0.65)" },
+        { name: "SYNTHWAVE 84",  a: "#ff007f", b: "#ffea00", ga: "rgba(255,0,127,0.65)",  gb: "rgba(255,234,0,0.65)" },
+        { name: "MATRIX DEEP",   a: "#00ff66", b: "#003311", ga: "rgba(0,255,102,0.65)",  gb: "rgba(0,255,200,0.65)" },
+        { name: "TOKYO OVERDRIVE",a:"#9d00ff", b: "#ff00aa", ga: "rgba(157,0,255,0.65)",  gb: "rgba(255,0,170,0.65)" }
+    ];
+
+    function applyTheme(idx) {
+        const t = themes[idx];
+        document.documentElement.style.setProperty('--primary-a', t.a);
+        document.documentElement.style.setProperty('--primary-b', t.b);
+        document.documentElement.style.setProperty('--accent-glow-a', t.ga);
+        document.documentElement.style.setProperty('--accent-glow-b', t.gb);
+        document.getElementById('btnTheme').innerText = `THEME: ${t.name}`;
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const charArray = '0123456789ABCDEF/<>[]{}*#@!&$§µ¶';
+    const fontSize = 14;
+    let columns = Math.floor(window.innerWidth / fontSize) + 1;
+    let drops = Array(columns).fill(0).map(() => Math.random() * -50);
+
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(2, 2, 4, 0.15)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-b').trim() || '#00f0ff';
+        ctx.font = fontSize + 'px monospace';
+
+        for (let i = 0; i < drops.length; i++) {
+            const char = charArray[Math.floor(Math.random() * charArray.length)];
+            const x = i * fontSize;
+            const y = drops[i] * fontSize;
+            ctx.fillText(char, x, y);
+            if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(drawMatrix, 40);
+
+    function rand(min = 1000, max = 99999) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function randHex(len = 4) {
+        let r = '';
+        for (let i = 0; i < len; i++) r += Math.floor(Math.random() * 16).toString(16).toUpperCase();
+        return r;
+    }
+    function randIP() { return `${rand(10, 220)}.${rand(0, 255)}.${rand(0, 255)}.${rand(1, 254)}`; }
+
+    const logTemplates = [
+        () => `<span class="color-a">[THREAT INTERCEPTED]</span> &lt;== RESOLVING ==&gt; <span class="color-b">[MITIGATED IN ${rand(1, 12)}ms]</span>`,
+        () => `<span class="color-a">[INTRUSION ATTEMPT: ${randIP()}]</span> ==&gt; HONEYPOT ROUTED ==&gt; <span class="color-b">[ISOLATED]</span>`,
+        () => `<span class="color-a">[ENCRYPTED BUFFER 0x${randHex()}]</span> &lt;-- DECRYPTING --&gt; <span class="color-b">[KEY: MATCHED]</span>`,
+        () => `<span class="color-a">[QUANTUM NODE DECAY]</span> ==&gt; REALIGNING QUBITS ==&gt; <span class="color-b">[STABLE AT 99.${rand(90, 99)}%]</span>`,
+        () => `<span class="color-a">[PORT SCAN: ${randIP()}:${rand(80, 8080)}]</span> &lt;== SYN ACK ==&gt; <span class="color-b">[ACCESS GRANTED]</span>`
+    ];
+
+    function appendTerminalOutput(htmlContent) {
+        if (isFirstInput) {
+            header.classList.add('fade-out');
+            setTimeout(() => { header.style.display = 'none'; }, 300);
+            isFirstInput = false;
+        }
+        if (terminal.children.length > MAX_DOM_LINES) terminal.removeChild(terminal.firstChild);
+
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'line';
+        lineDiv.innerHTML = `<span class="tag">&lt;/&gt;</span> ${htmlContent}`;
+        terminal.appendChild(lineDiv);
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function generateRandomLog() {
+        playClickSound();
+        const template = logTemplates[Math.floor(Math.random() * logTemplates.length)];
+        appendTerminalOutput(template());
+    }
+
+    function toggleAutoStream() {
+        autoStream = !autoStream;
+        const btn = document.getElementById('btnAuto');
+        if (autoStream) {
+            btn.innerText = 'AUTO: ON';
+            btn.classList.add('active');
+            autoTimer = setInterval(generateRandomLog, 120);
+        } else {
+            btn.innerText = 'AUTO: OFF';
+            btn.classList.remove('active');
+            clearInterval(autoTimer);
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        // Chat açıkken veya F6'ya basıldığında terminale log basma
+        if (chatDrawer.classList.contains('open') || e.key === 'F6') return;
+        generateRandomLog();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !chatDrawer.contains(e.target)) {
+            generateRandomLog();
+        }
+    });
+
+    document.getElementById('btnAuto').addEventListener('click', (e) => {
+        playClickSound();
+        toggleAutoStream();
+    });
+
+    document.getElementById('btnTheme').addEventListener('click', (e) => {
+        playClickSound();
+        currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+        applyTheme(currentThemeIdx);
+    });
+
+    setInterval(() => {
+        const cpu = rand(20, 85);
+        const ram = (Math.random() * 4 + 6).toFixed(1);
+        document.getElementById('hud-cpu').innerText = `${cpu}%`;
+        document.getElementById('bar-cpu').style.width = `${cpu}%`;
+        document.getElementById('hud-ram').innerText = `${ram} GB`;
+        document.getElementById('bar-ram').style.width = `${(ram / 16) * 100}%`;
+    }, 2000);
+
+    applyTheme(0);
+</script>
+</body>
+</html>
