@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>\\ SYSTEM TERMINAL - STREAM ENGINE 6.0 //</title>
+    <title>\\ SYSTEM TERMINAL - STREAM ENGINE 7.2 //</title>
     
     <!-- Firebase Realtime Database SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -190,9 +190,16 @@
             text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
         }
 
+        /* DYNAMIC COLOR PALETTE */
         .color-a { color: var(--primary-a); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-a); }
         .color-b { color: var(--primary-b); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-b); }
         .color-danger { color: #ff0055; font-weight: bold; text-shadow: 0 0 8px rgba(255, 0, 85, 0.8); }
+        .color-warn { color: #ffaa00; font-weight: bold; text-shadow: 0 0 6px rgba(255, 170, 0, 0.7); }
+        .color-success { color: #00ffaa; font-weight: bold; text-shadow: 0 0 6px rgba(0, 255, 170, 0.7); }
+        .color-info { color: #00aaff; font-weight: bold; text-shadow: 0 0 6px rgba(0, 170, 255, 0.7); }
+        .color-purple { color: #be00ff; font-weight: bold; text-shadow: 0 0 6px rgba(190, 0, 255, 0.7); }
+        .color-pink { color: #ff00aa; font-weight: bold; text-shadow: 0 0 6px rgba(255, 0, 170, 0.7); }
+        .color-gold { color: #ffd700; font-weight: bold; text-shadow: 0 0 6px rgba(255, 215, 0, 0.7); }
         .val-white { color: #ffffff; font-weight: bold; }
 
         .cursor-line {
@@ -382,7 +389,7 @@
 
 <div class="main-content">
     <div id="header" class="header">========================================================================================
-                       \\ SYSTEM TERMINAL - STREAM ENGINE 6.0 //
+                       \\ SYSTEM TERMINAL - STREAM ENGINE 7.2 //
 ========================================================================================</div>
 
     <div class="terminal-container">
@@ -606,12 +613,20 @@
     btnSendMsg.addEventListener('click', sendMessage);
     chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
+    // --- 12 DISTINCT CYBERPUNK THEMES ---
     const themes = [
-        { name: "NIGHT CITY",    a: "#fcee0a", b: "#00f0ff", ga: "rgba(252,238,10,0.65)",  gb: "rgba(0,240,255,0.65)" },
-        { name: "NEON PROTOCOL", a: "#ff0055", b: "#00f6ff", ga: "rgba(255,0,85,0.65)",   gb: "rgba(0,246,255,0.65)" },
-        { name: "SYNTHWAVE 84",  a: "#ff007f", b: "#ffea00", ga: "rgba(255,0,127,0.65)",  gb: "rgba(255,234,0,0.65)" },
-        { name: "MATRIX DEEP",   a: "#00ff66", b: "#003311", ga: "rgba(0,255,102,0.65)",  gb: "rgba(0,255,200,0.65)" },
-        { name: "TOKYO OVERDRIVE",a:"#9d00ff", b: "#ff00aa", ga: "rgba(157,0,255,0.65)",  gb: "rgba(255,0,170,0.65)" }
+        { name: "NIGHT CITY",       a: "#fcee0a", b: "#00f0ff", ga: "rgba(252,238,10,0.65)",  gb: "rgba(0,240,255,0.65)" },
+        { name: "NEON PROTOCOL",    a: "#ff0055", b: "#00f6ff", ga: "rgba(255,0,85,0.65)",   gb: "rgba(0,246,255,0.65)" },
+        { name: "SYNTHWAVE 84",     a: "#ff007f", b: "#ffea00", ga: "rgba(255,0,127,0.65)",  gb: "rgba(255,234,0,0.65)" },
+        { name: "MATRIX DEEP",      a: "#00ff66", b: "#003311", ga: "rgba(0,255,102,0.65)",  gb: "rgba(0,255,200,0.65)" },
+        { name: "TOKYO OVERDRIVE",  a: "#9d00ff", b: "#ff00aa", ga: "rgba(157,0,255,0.65)",  gb: "rgba(255,0,170,0.65)" },
+        { name: "CYBER HELL",       a: "#ff3300", b: "#ff9900", ga: "rgba(255,51,0,0.65)",   gb: "rgba(255,153,0,0.65)" },
+        { name: "ACID RAIN",        a: "#ccff00", b: "#00ff66", ga: "rgba(204,255,0,0.65)",  gb: "rgba(0,255,102,0.65)" },
+        { name: "GHOST SHELL",      a: "#00ffff", b: "#7000ff", ga: "rgba(0,255,255,0.65)",  gb: "rgba(112,0,255,0.65)" },
+        { name: "SOLAR DUST",       a: "#ffaa00", b: "#ff2200", ga: "rgba(255,170,0,0.65)",  gb: "rgba(255,34,0,0.65)" },
+        { name: "COBALT STRIKE",    a: "#0066ff", b: "#00ffff", ga: "rgba(0,102,255,0.65)",  gb: "rgba(0,255,255,0.65)" },
+        { name: "BLOOD CHROME",     a: "#ff0033", b: "#cccccc", ga: "rgba(255,0,51,0.65)",   gb: "rgba(204,204,204,0.65)" },
+        { name: "VOID RUNNER",      a: "#e000ff", b: "#00e5ff", ga: "rgba(224,0,255,0.65)",  gb: "rgba(0,229,255,0.65)" }
     ];
 
     function applyTheme(idx) {
@@ -660,12 +675,40 @@
     }
     function randIP() { return `${rand(10, 220)}.${rand(0, 255)}.${rand(0, 255)}.${rand(1, 254)}`; }
 
+    // --- 32 RICH TERMINAL OUTPUT LOG TEMPLATES ---
     const logTemplates = [
         () => `<span class="color-a">[THREAT INTERCEPTED]</span> &lt;== RESOLVING ==&gt; <span class="color-b">[MITIGATED IN ${rand(1, 12)}ms]</span>`,
-        () => `<span class="color-a">[INTRUSION ATTEMPT: ${randIP()}]</span> ==&gt; HONEYPOT ROUTED ==&gt; <span class="color-b">[ISOLATED]</span>`,
-        () => `<span class="color-a">[ENCRYPTED BUFFER 0x${randHex()}]</span> &lt;-- DECRYPTING --&gt; <span class="color-b">[KEY: MATCHED]</span>`,
-        () => `<span class="color-a">[QUANTUM NODE DECAY]</span> ==&gt; REALIGNING QUBITS ==&gt; <span class="color-b">[STABLE AT 99.${rand(90, 99)}%]</span>`,
-        () => `<span class="color-a">[PORT SCAN: ${randIP()}:${rand(80, 8080)}]</span> &lt;== SYN ACK ==&gt; <span class="color-b">[ACCESS GRANTED]</span>`
+        () => `<span class="color-danger">[INTRUSION ATTEMPT: ${randIP()}]</span> ==&gt; HONEYPOT ROUTED ==&gt; <span class="color-b">[ISOLATED]</span>`,
+        () => `<span class="color-info">[ENCRYPTED BUFFER 0x${randHex()}]</span> &lt;-- DECRYPTING --&gt; <span class="color-success">[KEY: MATCHED]</span>`,
+        () => `<span class="color-purple">[QUANTUM NODE DECAY]</span> ==&gt; REALIGNING QUBITS ==&gt; <span class="color-b">[STABLE AT 99.${rand(90, 99)}%]</span>`,
+        () => `<span class="color-warn">[PORT SCAN: ${randIP()}:${rand(80, 8080)}]</span> &lt;== SYN ACK ==&gt; <span class="color-success">[ACCESS GRANTED]</span>`,
+        () => `<span class="color-pink">[NEURAL SYNAPSE LINK]</span> &lt;-- SYNCING --&gt; <span class="color-gold">[BANDWIDTH: ${rand(10, 99)} Gbps]</span>`,
+        () => `<span class="color-gold">[SAT-UPLINK #0x${randHex(3)}]</span> ==&gt; ORBITAL BEACON ==&gt; <span class="color-info">[SIGNAL: LOCK ${rand(90, 100)}%]</span>`,
+        () => `<span class="color-success">[ZERO-DAY PATCH #72${randHex(2)}]</span> &lt;== DEPLOYING ==&gt; <span class="color-b">[KERNEL SECURED]</span>`,
+        () => `<span class="color-warn">[STACK OVERFLOW DETECTED]</span> ==&gt; PURGING HEAP ==&gt; <span class="color-purple">[FREED ${rand(128, 1024)} MB]</span>`,
+        () => `<span class="color-info">[BIOMETRIC CIPHER]</span> &lt;-- HASH CHECK --&gt; <span class="color-success">[VERIFIED: USER_${rand(100, 999)}]</span>`,
+        () => `<span class="color-purple">[MAINFRAME BYPASS]</span> ==&gt; TUNNELING ROUTE ==&gt; <span class="color-pink">[GATEWAY #${rand(1, 16)} OK]</span>`,
+        () => `<span class="color-danger">[DARKNET NODE ${randIP()}]</span> &lt;== PROXY CASCADE ==&gt; <span class="color-gold">[HOP COUNT: ${rand(4, 12)}]</span>`,
+        () => `<span class="color-gold">[SUB-SPACE CARRIER]</span> &lt;-- FREQ 5.8GHz --&gt; <span class="color-b">[MODULATION: QAM-256]</span>`,
+        () => `<span class="color-success">[FIREWALL RULE #0x${randHex()}]</span> ==&gt; INJECTING TABLES ==&gt; <span class="color-info">[PACKET DROP: ACTIVE]</span>`,
+        () => `<span class="color-b">[KERNEL THREAD #${rand(100, 999)}]</span> &lt;-- PRIORITY ELEVATED --&gt; <span class="color-warn">[NICE: -20]</span>`,
+        () => `<span class="color-pink">[DNS SPOOF DETECTED]</span> ==&gt; FLUSHING CACHE ==&gt; <span class="color-success">[RESOLVED TO ${randIP()}]</span>`,
+        () => `<span class="color-info">[CUDA TENSOR CORE]</span> &lt;-- MATRIX MULT --&gt; <span class="color-purple">[FLOPS: ${rand(10, 99)} TFLOPS]</span>`,
+        () => `<span class="color-warn">[ICE BREAKER V2]</span> ==&gt; DRILLING SUBSYSTEM ==&gt; <span class="color-danger">[LAYER ${rand(1, 7)} BREACHED]</span>`,
+        () => `<span class="color-purple">[CRYPTOGRAPHIC NONCE]</span> &lt;-- BLAKE3 SEARCH --&gt; <span class="color-gold">[FOUND: 0x${randHex(8)}]</span>`,
+        () => `<span class="color-gold">[FIRMWARE INTEGRITY]</span> ==&gt; SHA-512 AUDIT ==&gt; <span class="color-success">[CHECKSUM MATCH]</span>`,
+        () => `<span class="color-danger">[ROGUE DAEMON PID:${rand(1000, 9999)}]</span> &lt;== SIGKILL SENT ==&gt; <span class="color-info">[PROCESS TERMINATED]</span>`,
+        () => `<span class="color-success">[QUANTUM KEY DIST]</span> ==&gt; ENTANGLING PAIRS ==&gt; <span class="color-b">[PAD GENERATED]</span>`,
+        () => `<span class="color-pink">[THERMAL SENSOR ARRAY]</span> &lt;-- OVERCLOCK MON --&gt; <span class="color-warn">[TEMP: ${rand(45, 82)}°C]</span>`,
+        () => `<span class="color-b">[SUB-NET OVERRIDE]</span> ==&gt; BRUTE-FORCING MASK ==&gt; <span class="color-success">[NETMASK 255.255.255.0]</span>`,
+        () => `<span class="color-info">[ANTI-MATTER LOGIC]</span> &lt;-- FLUX CHECK --&gt; <span class="color-purple">[CONTAINMENT: STABLE]</span>`,
+        () => `<span class="color-gold">[DARK FIBER TRACE]</span> ==&gt; HIGH-FREQ BACKBONE ==&gt; <span class="color-pink">[PING: ${rand(1, 4)}ms]</span>`,
+        () => `<span class="color-purple">[CYBERDECK BUS]</span> &lt;-- VOLTAGE OVERRIDE --&gt; <span class="color-success">[POWER: +${rand(5, 25)}%]</span>`,
+        () => `<span class="color-danger">[EXPLOIT PAYLOAD]</span> ==&gt; BUFFER INJECTION ==&gt; <span class="color-warn">[SHELLCODE LOADED]</span>`,
+        () => `<span class="color-success">[GHOST PROTOCOL]</span> &lt;-- ANONYMIZING IP --&gt; <span class="color-b">[ORIGIN MASKED]</span>`,
+        () => `<span class="color-info">[AI HEURISTIC AUDIT]</span> ==&gt; SCANNED ${rand(10, 50)}K FILES ==&gt; <span class="color-gold">[ZERO THREATS]</span>`,
+        () => `<span class="color-pink">[PULSE BEACON]</span> &lt;-- PINGING GATEWAY --&gt; <span class="color-success">[ACK 0x${randHex(2)}]</span>`,
+        () => `<span class="color-warn">[RAMDISK MOUNT]</span> ==&gt; ALLOCATING TMPFS ==&gt; <span class="color-purple">[MOUNTED @ /dev/shm]</span>`
     ];
 
     function appendTerminalOutput(htmlContent) {
