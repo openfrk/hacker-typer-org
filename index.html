@@ -404,7 +404,7 @@
 
 <div class="chat-drawer" id="chatDrawer">
     <div class="chat-header">
-        <span class="chat-title">// GLOBAL TERMINAL CHAT</span>
+        <span class="chat-title">// GLOBAL LIVE CHAT</span>
         <button class="chat-close-btn" id="btnCloseChat">[X]</button>
     </div>
 
@@ -491,11 +491,16 @@
         measurementId: "G-02ZC9EDGR6"
     };
 
+    // Oturum başlangıç zamanı (Geçmiş mesajları atlayıp sadece canlı mesajları almak için)
+    const joinTime = Date.now();
     let dbRef = null;
+
     if (firebaseConfig.databaseURL) {
         firebase.initializeApp(firebaseConfig);
         dbRef = firebase.database().ref("global_chat");
-        dbRef.limitToLast(40).on('child_added', (snapshot) => {
+
+        // Yalnızca kullanıcının giriş yaptığı andan (joinTime) sonra eklenen mesajları dinler
+        dbRef.orderByChild('createdAt').startAt(joinTime + 1).on('child_added', (snapshot) => {
             const data = snapshot.val();
             addChatMessageUI(data.nick, data.text, data.time);
         });
@@ -503,7 +508,7 @@
 
     const localChannel = new BroadcastChannel('cyber_terminal_chat');
     localChannel.onmessage = (event) => {
-        if (!dbRef) {
+        if (!dbRef && event.data.createdAt > joinTime) {
             addChatMessageUI(event.data.nick, event.data.text, event.data.time);
         }
     };
@@ -549,13 +554,19 @@
         if (!text) return;
         
         playClickSound();
+        const now = Date.now();
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         if (dbRef) {
-            dbRef.push({ nick: userNickname, text: text, time: timeStr });
+            dbRef.push({ 
+                nick: userNickname, 
+                text: text, 
+                time: timeStr,
+                createdAt: now
+            });
         } else {
             addChatMessageUI(userNickname, text, timeStr);
-            localChannel.postMessage({ nick: userNickname, text: text, time: timeStr });
+            localChannel.postMessage({ nick: userNickname, text: text, time: timeStr, createdAt: now });
         }
 
         chatInput.value = '';
