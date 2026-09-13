@@ -479,9 +479,16 @@
 
     let userNickname = localStorage.getItem('terminal_nick') || '';
 
+    // --- FIREBASE REALTIME DATABASE CONFIGURATION ---
     const firebaseConfig = {
-        // apiKey: "...",
-        // databaseURL: "https://your-db.firebaseio.com"
+        apiKey: "AIzaSyDZ9OGt9U3vnbWjGX-pGVb2LW7DOAUDe90",
+        authDomain: "hacker-typer-org.firebaseapp.com",
+        databaseURL: "https://hacker-typer-org-default-rtdb.firebaseio.com",
+        projectId: "hacker-typer-org",
+        storageBucket: "hacker-typer-org.firebasestorage.app",
+        messagingSenderId: "833258885308",
+        appId: "1:833258885308:web:2898bb1b7a7256465040b9",
+        measurementId: "G-02ZC9EDGR6"
     };
 
     let dbRef = null;
@@ -496,7 +503,9 @@
 
     const localChannel = new BroadcastChannel('cyber_terminal_chat');
     localChannel.onmessage = (event) => {
-        addChatMessageUI(event.data.nick, event.data.text, event.data.time);
+        if (!dbRef) {
+            addChatMessageUI(event.data.nick, event.data.text, event.data.time);
+        }
     };
 
     function toggleChat() {
