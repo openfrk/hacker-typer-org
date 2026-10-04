@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>\\ SYSTEM TERMINAL - STREAM ENGINE 7.4 //</title>
 
-    <!-- FAVICON (PowerShell'den aldığın Base64 kodunu href="data:image/png;base64,..." şeklinde yapıştırabilir veya 'cmd_icon.png' olarak bırakabilirsin) -->
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAIGSURBVFhH7ZdNaxpRFIYPVSpSgoLiQhD8QgQVQRRRRBBREVH/Rveli0Ap2CZao8EONZqS9Pe0iR8ZV+kq3fUv2FXfckYdHJ20Uhwt1BceRs/cmfPM5S7uJTpk32m2hVe1k3fYJSf1Vo2InhLRE2o0Wz+/PnzH5P4bJvcPW+X5saB6ZQkiskkSHeFiOhYnkLmbYKSKiNFYxFDmDoPRDK7zc2NRlMbxfa7fDse4GYzw5XaIzzcDmbmAh4ieUf/y07RarYKpVCool8solUooFosoFArI5XLIZrPIZDJIp9NIpVJIJpOIx+OIRqOIRCIIh8MIhUIIBALw+/3w+XxwuVyw2+2wWCwwGo3cUGYu4COiI+pfXu9XoNe/2q9At/fxx6rAIo8JcDQT4CxmgLMQ4GgiIHT7UnM1gd/NAGchEAwG4fV64Xa74XQ64XA4YLVaYTabYTKZYDAYtiOQSCSkL/V4PLKEXq9XvHwTNhbgcFP+Ms7qi9Rqm6AQeP+hpxBYXoQ8fasPL7Ms8Kc8KtARLhQCsVhsbdFsG1WBfD4Pm822NlgL1gR4da+uVC1RCDSa59DpdGuDtEQhMP+zUw4CB4GDwL8lwHv017XTKRf/hrf1M9SbbTTbHTTOOjhttPBGZdwyL14ed+Vd8fyAwHt0LrDVLuBes3OBdDqZ/WCbox3BvWYno/8+vwDIRuZfRlCqlQAAAABJRU5ErkJggg==">
     
-    <!-- Firebase Realtime Database SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -193,7 +191,6 @@
             text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
         }
 
-        /* DYNAMIC COLOR PALETTE */
         .color-a { color: var(--primary-a); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-a); }
         .color-b { color: var(--primary-b); font-weight: bold; text-shadow: 0 0 6px var(--accent-glow-b); }
         .color-danger { color: #ff0055; font-weight: bold; text-shadow: 0 0 8px rgba(255, 0, 85, 0.8); }
@@ -493,7 +490,6 @@
 
     let userNickname = localStorage.getItem('terminal_nick') || '';
 
-    // --- FIREBASE REALTIME DATABASE CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "AIzaSyDZ9OGt9U3vnbWjGX-pGVb2LW7DOAUDe90",
         authDomain: "hacker-typer-org.firebaseapp.com",
@@ -505,7 +501,6 @@
         measurementId: "G-02ZC9EDGR6"
     };
 
-    // Oturum başlangıç zamanı (Geçmiş mesajları atlayıp sadece canlı mesajları almak için)
     const joinTime = Date.now();
     let dbRef = null;
 
@@ -513,7 +508,6 @@
         firebase.initializeApp(firebaseConfig);
         dbRef = firebase.database().ref("global_chat");
 
-        // Yalnızca kullanıcının giriş yaptığı andan (joinTime) sonra eklenen mesajları dinler
         dbRef.orderByChild('createdAt').startAt(joinTime + 1).on('child_added', (snapshot) => {
             const data = snapshot.val();
             addChatMessageUI(data.nick, data.text, data.time);
@@ -604,7 +598,6 @@
         );
     }
 
-    // --- ANTI-DEVTOOLS & SECURITY PROTECTION ---
     document.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         playClickSound();
@@ -647,7 +640,6 @@
     btnSendMsg.addEventListener('click', sendMessage);
     chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-    // --- 12 DISTINCT CYBERPUNK THEMES ---
     const themes = [
         { name: "NIGHT CITY",       a: "#fcee0a", b: "#00f0ff", ga: "rgba(252,238,10,0.65)",  gb: "rgba(0,240,255,0.65)" },
         { name: "NEON PROTOCOL",    a: "#ff0055", b: "#00f6ff", ga: "rgba(255,0,85,0.65)",   gb: "rgba(0,246,255,0.65)" },
@@ -709,7 +701,6 @@
     }
     function randIP() { return `${rand(10, 220)}.${rand(0, 255)}.${rand(0, 255)}.${rand(1, 254)}`; }
 
-    // --- 32 RICH TERMINAL OUTPUT LOG TEMPLATES ---
     const logTemplates = [
         () => `<span class="color-a">[THREAT INTERCEPTED]</span> &lt;== RESOLVING ==&gt; <span class="color-b">[MITIGATED IN ${rand(1, 12)}ms]</span>`,
         () => `<span class="color-danger">[INTRUSION ATTEMPT: ${randIP()}]</span> ==&gt; HONEYPOT ROUTED ==&gt; <span class="color-b">[ISOLATED]</span>`,
